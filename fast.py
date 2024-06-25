@@ -106,6 +106,9 @@ async def submit_form(data: InputData
         
         key = (disease_indication, time_horizon if naive_switch == "Naive" else None, naive_switch, clinical_status)
         dosage_info = drug_dosages.get(key, {})
+        
+        drug_dosages_side_bar_data = dosage_info
+        
         dosage_info = { i:j for i,j in dosage_info.items() if i in drugs_selected }
 
         try:drug1_dosage = dosage_info.get("Drug 1") 
@@ -119,6 +122,9 @@ async def submit_form(data: InputData
         try:drug5_dosage = dosage_info.get("Drug 5") 
         except: drug5_dosage = 0
 
+    else:
+        drug_dosages_side_bar_data = {}
+    
     # Dictionary to hold drug details
     drugs = {
         'Drug 1': {'dosage': drug1_dosage, 'cost_per_vial': drug1_cost_per_vial},
@@ -240,7 +246,8 @@ async def submit_form(data: InputData
     d2 = calculate_cumulative_costs( time_horizon,dist_y1[Second_Drug],dist_y2345[Second_Drug],drug3_cost_per_vial,drug3_dosage)
     
     
-    return {"bar_gragh_data": bar_graph_data.to_dict(orient="records"), 
+    return {"drug_dosages_side_bar_data" : drug_dosages_side_bar_data,
+            "bar_gragh_data": bar_graph_data.to_dict(orient="records"), 
             "Total_Package_Cost": Total_Package_Cost_data.to_dict(orient="records"),
             "First_Drug_data" : d1,
             "Second_Drug_data" : d2}
