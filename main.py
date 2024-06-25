@@ -27,10 +27,10 @@ from fastapi import FastAPI, Form
 app = FastAPI()
 
 origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8000",
+    "http://10.1.75.50:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+    "http://0.0.0.0:8000",
 ]
 
 app.add_middleware(
