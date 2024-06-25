@@ -41,6 +41,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def status_check():    
+    return {"status": "Healthy and running project is on live"}
+
 
 class InputData(BaseModel):
     account_type: str = "Government Account"
