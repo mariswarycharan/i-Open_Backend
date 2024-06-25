@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
 import pandas as pd
 from typing import List
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-
     
 # Function to calculate total cost for a drug
 def calculate_total_cost(dosage, cost_per_vial, procedure_cost, consulting_charges, oct_cost, travel_cost, food_cost, miscellaneous_cost, patient_lost_opportunity_cost, caregiver_lost_opportunity_cost):
@@ -27,12 +26,29 @@ from fastapi import FastAPI, Form
 
 app = FastAPI()
 
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 class InputData(BaseModel):
+    account_type: str = "Government Account"
     drugs_selected: List[str] = ["Drug 1", "Drug 2", "Drug 3", "Drug 4", "Drug 5"]
     disease_indication: str = "WET AMD"
     time_horizon: str = "1"
     government_ac: str = "Yes"
+    patient_support: str = "Yes"
     naive_switch: str = "Naive"
     clinical_status: str = "Per Label"
     drug1_dosage: int = 3
@@ -52,14 +68,14 @@ class InputData(BaseModel):
     Second_Drug: str = "Drug 2"
 
 @app.post("/submit")
-async def submit_form(data: InputData
-):
-
+async def submit_form(data: InputData):
     
+    account_type = data.account_type
     drugs_selected = data.drugs_selected
     disease_indication = data.disease_indication
     time_horizon = data.time_horizon
     government_ac = data.government_ac
+    patient_support = data.patient_support
     naive_switch = data.naive_switch
     clinical_status = data.clinical_status
     drug1_dosage = data.drug1_dosage
@@ -78,13 +94,27 @@ async def submit_form(data: InputData
     First_Drug = data.First_Drug
     Second_Drug = data.Second_Drug
     
-    
-    drug1_cost_per_vial=60000  #---Drug 1 = Faricimab
-    drug2_cost_per_vial=45000 #---Drug 2 = Aflibercept
-    drug3_cost_per_vial=25000 #---Drug 3 = Brolucizumab
-    drug4_cost_per_vial=18000  #---Drug 4 = Ranibizumab
-    drug5_cost_per_vial=10000  #---Drug 5 = Rani Biosimilar
-    
+    if account_type == "Government Account":
+        drug1_cost_per_vial=60000  #---Drug 1 = Faricimab
+        drug2_cost_per_vial=45000 #---Drug 2 = Aflibercept
+        drug3_cost_per_vial=25000 #---Drug 3 = Brolucizumab
+        drug4_cost_per_vial=18000  #---Drug 4 = Ranibizumab
+        drug5_cost_per_vial=10000  #---Drug 5 = Rani Biosimilar
+        
+    if account_type == "Trade Account":
+        if patient_support == "Yes":
+            drug1_cost_per_vial=30000 
+            drug2_cost_per_vial=24000 
+            drug3_cost_per_vial=35000 
+            drug4_cost_per_vial=25000 
+            drug5_cost_per_vial=20000 
+            
+        else:
+            drug1_cost_per_vial=75000  
+            drug2_cost_per_vial=60000 
+            drug3_cost_per_vial=35000 
+            drug4_cost_per_vial=25000  
+            drug5_cost_per_vial=20000 
     
     
     drug_dosages = {
@@ -125,6 +155,8 @@ async def submit_form(data: InputData
     else:
         drug_dosages_side_bar_data = {}
     
+    # ------------------------------------------- bar graph data ----------------------------------------------
+    
     # Dictionary to hold drug details
     drugs = {
         'Drug 1': {'dosage': drug1_dosage, 'cost_per_vial': drug1_cost_per_vial},
@@ -160,6 +192,8 @@ async def submit_form(data: InputData
     bar_graph_data.loc[3] = [drug4_total_package_cost, drug4_total_consulting_charges, drug4_total_oct_charges, drug4_total_travel_food_cost, drug4_total_opportunity_cost_lost, drug4_total_cost_per_patient]
     bar_graph_data.loc[4] = [drug5_total_package_cost, drug5_total_consulting_charges, drug5_total_oct_charges, drug5_total_travel_food_cost, drug5_total_opportunity_cost_lost, drug5_total_cost_per_patient]
     
+    # ------------------------------------------ Total Package Cost ------------------------------------------
+    
     Total_Package_Cost_data = pd.DataFrame(columns=["Total Package Cost", "Direct Costs", "Indirect Costs","Total Cost"])
     
     
@@ -171,6 +205,8 @@ async def submit_form(data: InputData
         total_costs = Total_Package_Cost_value + Direct_Costs + Indirect_Costs
         Total_Package_Cost_data.loc[i] = [Total_Package_Cost_value, Direct_Costs, Indirect_Costs, total_costs]
 
+    # ------------------------------------------ Cumulative Costs Comparison ------------------------------------------
+    
     cumulative_predefined_drug1_perlabel_dosage_y1=6
     cumulative_predefined_drug2_perlabel_dosage_y1=8
     cumulative_predefined_drug3_perlabel_dosage_y1=8
@@ -186,6 +222,9 @@ async def submit_form(data: InputData
     cumulative_predefined_drug5_perlabel_dosage_y2345=12
     
     dist_y2345 = {"Drug 1": cumulative_predefined_drug1_perlabel_dosage_y2345, "Drug 2": cumulative_predefined_drug2_perlabel_dosage_y2345, "Drug 3": cumulative_predefined_drug3_perlabel_dosage_y2345, "Drug 4": cumulative_predefined_drug4_perlabel_dosage_y2345, "Drug 5": cumulative_predefined_drug5_perlabel_dosage_y2345}
+    
+    dist_cost_per_vial = {"Drug 1": drug1_cost_per_vial, "Drug 2": drug2_cost_per_vial, "Drug 3": drug3_cost_per_vial, "Drug 4": drug4_cost_per_vial, "Drug 5": drug5_cost_per_vial}
+    dist_dosage = {"Drug 1": drug1_dosage, "Drug 2": drug2_dosage, "Drug 3": drug3_dosage, "Drug 4": drug4_dosage, "Drug 5": drug5_dosage}
     
     def calculate_cumulative_costs( Time_Horizon_value, cumulative_predefined_value_drug_num,cumulative_predefined_value_drug_num_2345,drug_cost_per_vial_value,drug_dosage_value):
         dist_all = {}
@@ -242,13 +281,16 @@ async def submit_form(data: InputData
         return dist_all
     
         
-    d1 = calculate_cumulative_costs( time_horizon, dist_y1[First_Drug],dist_y2345[First_Drug],drug1_cost_per_vial,drug1_dosage)
-    d2 = calculate_cumulative_costs( time_horizon,dist_y1[Second_Drug],dist_y2345[Second_Drug],drug3_cost_per_vial,drug3_dosage)
+    d1 = calculate_cumulative_costs( time_horizon, dist_y1[First_Drug],dist_y2345[First_Drug],dist_cost_per_vial[First_Drug],dist_dosage[First_Drug])
+    d2 = calculate_cumulative_costs( time_horizon,dist_y1[Second_Drug],dist_y2345[Second_Drug],dist_cost_per_vial[Second_Drug],dist_dosage[Second_Drug])
     
+    bar_graph_data = [ {"data": list(i.values()) } for i in bar_graph_data.to_dict(orient="records")]
+    dir_indir_total_cost = {0:"Direct Costs",1:"Indirect Costs",2:"Package Cost"}
+    Total_Package_Cost_data = [ {"data":[ {"id":ids - 1,"value":i,"label": dir_indir_total_cost[ids - 1] } for ids,i in enumerate(list(i.values())) if ids != 0 ] } for i in Total_Package_Cost_data.to_dict(orient="records")]
     
     return {"drug_dosages_side_bar_data" : drug_dosages_side_bar_data,
-            "bar_gragh_data": bar_graph_data.to_dict(orient="records"), 
-            "Total_Package_Cost": Total_Package_Cost_data.to_dict(orient="records"),
+            "bar_gragh_data": bar_graph_data,
+            "Total_Package_Cost": Total_Package_Cost_data,
             "First_Drug_data" : d1,
             "Second_Drug_data" : d2}
             
