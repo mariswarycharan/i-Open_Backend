@@ -85,6 +85,8 @@ async def submit_form(data: InputData
     drug4_cost_per_vial=18000  #---Drug 4 = Ranibizumab
     drug5_cost_per_vial=10000  #---Drug 5 = Rani Biosimilar
     
+    
+    
     drug_dosages = {
         ("WET AMD", "1", "Naive", "Per Label"): {"Drug 1": 6, "Drug 2": 8, "Drug 3": 8, "Drug 4": 12, "Drug 5": 12},
         ("WET AMD", "2", "Naive", "Per Label"): {"Drug 1": 9, "Drug 2": 14, "Drug 3": 12, "Drug 4": 24, "Drug 5": 24},
