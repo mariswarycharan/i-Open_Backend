@@ -239,6 +239,9 @@ async def submit_form(data: InputData):
         indirect_cost = 0
         direct_cost = 0
         total_package_cost = 0
+        indirect_cost_list = []
+        direct_cost_list = []
+        total_package_cost_list = []
         
         for i in range(0,int(Time_Horizon_value)):
             
@@ -281,14 +284,22 @@ async def submit_form(data: InputData):
             direct_cost += cumulative_direct_cost_y1
             total_package_cost += cumulative_total_package_cost_y1
             
-            dist_all[i] = [indirect_cost, direct_cost, total_package_cost]  
+            indirect_cost_list.append(indirect_cost)
+            direct_cost_list.append(direct_cost)
+            total_package_cost_list.append(total_package_cost)
+         
+        dist_all["Indirect_Costs"] = indirect_cost_list + [0]*(5 - len(indirect_cost_list))
+        dist_all["Direct_Costs"] = direct_cost_list + [0]*(5 - len(direct_cost_list))
+        dist_all["Package_Cost"] = total_package_cost_list + [0]*(5 - len(total_package_cost_list))
             
-        # print(dist_all)
+
         return dist_all
     
         
     d1 = calculate_cumulative_costs( time_horizon, dist_y1[First_Drug],dist_y2345[First_Drug],dist_cost_per_vial[First_Drug],dist_dosage[First_Drug])
     d2 = calculate_cumulative_costs( time_horizon,dist_y1[Second_Drug],dist_y2345[Second_Drug],dist_cost_per_vial[Second_Drug],dist_dosage[Second_Drug])
+
+        
     
     bar_graph_data = [ {"data": list(j.values()) } for i,j in bar_graph_data.to_dict().items() ]
     dir_indir_total_cost = {0:"Direct Costs",1:"Indirect Costs",2:"Package Cost"}
