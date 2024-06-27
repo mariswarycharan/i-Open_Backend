@@ -74,6 +74,8 @@ class InputData(BaseModel):
 @app.post("/submit")
 async def submit_form(data: InputData):
     
+    print(data)
+    
     account_type = data.account_type
     drugs_selected = data.drugs_selected
     disease_indication = data.disease_indication
@@ -97,6 +99,8 @@ async def submit_form(data: InputData):
     caregiver_lost_opportunity_cost = data.caregiver_lost_opportunity_cost
     First_Drug = data.First_Drug
     Second_Drug = data.Second_Drug
+    
+    
     
     if account_type == "Government Account":
         drug1_cost_per_vial=60000  #---Drug 1 = Faricimab
@@ -271,9 +275,7 @@ async def submit_form(data: InputData):
                     cumulative_direct_cost_y1=int(((consulting_charges*drug_dosage_value)+(consulting_charges*(drug_dosage_value/2))+(oct_cost*drug_dosage_value)+(oct_cost*(drug_dosage_value/2))))
                     cumulative_indirect_cost_y1=int(((travel_cost+miscellaneous_cost+food_cost)*drug_dosage_value)+((travel_cost+miscellaneous_cost+food_cost)*(drug_dosage_value/2))+(patient_lost_opportunity_cost*drug_dosage_value)+(caregiver_lost_opportunity_cost*(drug_dosage_value/2)))   
                     cumulative_total_package_cost_y1=(drug_cost_per_vial_value+procedure_cost)*cumulative_predefined_value_drug_num_2345
-                                                    
 
-            
             
             indirect_cost += cumulative_indirect_cost_y1
             direct_cost += cumulative_direct_cost_y1
@@ -281,16 +283,16 @@ async def submit_form(data: InputData):
             
             dist_all[i] = [indirect_cost, direct_cost, total_package_cost]  
             
-        print(dist_all)
+        # print(dist_all)
         return dist_all
     
         
     d1 = calculate_cumulative_costs( time_horizon, dist_y1[First_Drug],dist_y2345[First_Drug],dist_cost_per_vial[First_Drug],dist_dosage[First_Drug])
     d2 = calculate_cumulative_costs( time_horizon,dist_y1[Second_Drug],dist_y2345[Second_Drug],dist_cost_per_vial[Second_Drug],dist_dosage[Second_Drug])
     
-    bar_graph_data = [ {"data": list(i.values()) } for i in bar_graph_data.to_dict(orient="records")]
+    bar_graph_data = [ {"data": list(j.values()) } for i,j in bar_graph_data.to_dict().items() ]
     dir_indir_total_cost = {0:"Direct Costs",1:"Indirect Costs",2:"Package Cost"}
-    Total_Package_Cost_data = [ {"data":[ {"id":ids - 1,"value":i,"label": dir_indir_total_cost[ids - 1] } for ids,i in enumerate(list(i.values())) if ids != 0 ] } for i in Total_Package_Cost_data.to_dict(orient="records")]
+    Total_Package_Cost_data = [ {"data":[ i for ids,i in enumerate(list(i.values())) if ids != 3 ] } for i in Total_Package_Cost_data.to_dict(orient="records")]
     
     return {"drug_dosages_side_bar_data" : drug_dosages_side_bar_data,
             "bar_gragh_data": bar_graph_data,
@@ -298,5 +300,3 @@ async def submit_form(data: InputData):
             "First_Drug_data" : d1,
             "Second_Drug_data" : d2}
             
-
-
