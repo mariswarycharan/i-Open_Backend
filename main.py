@@ -28,6 +28,7 @@ app = FastAPI()
 
 origins = [
     "http://10.1.75.50:3000",
+    "https://i-open-roche.vercel.app",
     "http://127.0.0.1:3000",
     "http://localhost:3000",
     "http://0.0.0.0:8000",
