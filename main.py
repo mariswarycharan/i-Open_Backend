@@ -56,11 +56,11 @@ class InputData(BaseModel):
     patient_support: str = "Yes"
     naive_switch: str = "Naive"
     clinical_status: str = "Per Label"
-    drug1_dosage: int = 3
-    drug2_dosage: int = 3
-    drug3_dosage: int = 5
-    drug4_dosage: int = 8
-    drug5_dosage: int = 8
+    drug1_dosage: int = 6
+    drug2_dosage: int = 8
+    drug3_dosage: int = 8
+    drug4_dosage: int = 12
+    drug5_dosage: int = 12
     procedure_cost: int = 1000
     oct_cost: int = 200
     consulting_charges: int = 200
@@ -75,7 +75,8 @@ class InputData(BaseModel):
 @app.post("/submit")
 async def submit_form(data: InputData):
     
-    print(data)
+    for i in data:
+        print(i)
     
     account_type = data.account_type
     drugs_selected = data.drugs_selected
@@ -161,8 +162,8 @@ async def submit_form(data: InputData):
         try:drug5_dosage = dosage_info.get("Drug 5") 
         except: drug5_dosage = 0
 
-    else:
-        drug_dosages_side_bar_data = {}
+    if clinical_status == "RWE":
+        drug_dosages_side_bar_data = {'Drug 1': drug1_dosage, 'Drug 2': drug2_dosage, 'Drug 3': drug3_dosage, 'Drug 4': drug4_dosage, 'Drug 5': drug5_dosage}
     
     # ------------------------------------------- bar graph data ----------------------------------------------
     
@@ -217,10 +218,19 @@ async def submit_form(data: InputData):
     # ------------------------------------------ Cumulative Costs Comparison ------------------------------------------
     
     cumulative_predefined_drug1_perlabel_dosage_y1=6
-    cumulative_predefined_drug2_perlabel_dosage_y1=8
-    cumulative_predefined_drug3_perlabel_dosage_y1=8
-    cumulative_predefined_drug4_perlabel_dosage_y1=12
-    cumulative_predefined_drug5_perlabel_dosage_y1=12
+    
+    if disease_indication=="WET AMD":
+        cumulative_predefined_drug1_perlabel_dosage_y1=6
+        cumulative_predefined_drug2_perlabel_dosage_y1=8
+        cumulative_predefined_drug3_perlabel_dosage_y1=8
+        cumulative_predefined_drug4_perlabel_dosage_y1=12
+        cumulative_predefined_drug5_perlabel_dosage_y1=12
+    elif disease_indication=="DME":
+        cumulative_predefined_drug1_perlabel_dosage_y1=6
+        cumulative_predefined_drug2_perlabel_dosage_y1=9
+        cumulative_predefined_drug3_perlabel_dosage_y1=9
+        cumulative_predefined_drug4_perlabel_dosage_y1=12
+        cumulative_predefined_drug5_perlabel_dosage_y1=12
 
     dist_y1 = {"Drug 1": cumulative_predefined_drug1_perlabel_dosage_y1, "Drug 2": cumulative_predefined_drug2_perlabel_dosage_y1, "Drug 3": cumulative_predefined_drug3_perlabel_dosage_y1, "Drug 4": cumulative_predefined_drug4_perlabel_dosage_y1, "Drug 5": cumulative_predefined_drug5_perlabel_dosage_y1}
     
@@ -305,7 +315,8 @@ async def submit_form(data: InputData):
     bar_graph_data = [ {"data": list(j.values()) } for i,j in bar_graph_data.to_dict().items() ]
     dir_indir_total_cost = {0:"Direct Costs",1:"Indirect Costs",2:"Package Cost"}
     Total_Package_Cost_data = [ {"data":[ i for ids,i in enumerate(list(i.values())) if ids != 3 ] } for i in Total_Package_Cost_data.to_dict(orient="records")]
-    
+    print('--------------')
+    print(drug_dosages_side_bar_data)
     return {"drug_dosages_side_bar_data" : drug_dosages_side_bar_data,
             "bar_gragh_data": bar_graph_data,
             "Total_Package_Cost": Total_Package_Cost_data,
