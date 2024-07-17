@@ -5,7 +5,9 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-    
+
+
+
 # Function to calculate total cost for a drug
 def calculate_total_cost(dosage, cost_per_vial, procedure_cost, consulting_charges, oct_cost, travel_cost, food_cost, miscellaneous_cost, patient_lost_opportunity_cost, caregiver_lost_opportunity_cost):
     dosage = int(dosage)
