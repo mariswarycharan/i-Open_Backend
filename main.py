@@ -32,6 +32,41 @@ origins = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
     "http://0.0.0.0:8000",
+    "https://i-open.roche.com/",
+    "https://i-open.roche.com",
+"http://10.146.70.236:3000",
+
+"http://10.1.75.50:3000",
+
+"http://10.146.68.1",
+
+"https://10.146.68.1",
+
+"http://10.85.20.1",
+
+"https://10.85.20.1",
+
+"https://i-open-roche.vercel.app",
+
+"http://localhost:3000",
+
+"http://rbamv377856.emea.roche.com:8000",
+
+"http://10.146.70.236:8080",
+
+"http://rbamv377856.emea.roche.com:80",
+
+"http://rbamv377856.emea.roche.com:85",
+
+"http://i-open.roche.com",
+
+"https://10.146.70.236:443",
+
+"https://rbamv377856.emea.roche.com:443",
+
+"https://rbamv377856.emea.roche.com:80", "https://rbamv377856.emea.roche.com",
+
+"https://rbamv377856.emea.roche.com:443",
 ]
 
 app.add_middleware(
