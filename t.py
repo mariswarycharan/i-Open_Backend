@@ -1,120 +1,161 @@
-from git import Repo, GitCommandError
+from git import Repo
+import subprocess
 
-def start_feature_branch(repo_path: str, feature_branch_name: str, main_branch: str = 'main') -> None:
+def create_feature_branch(repo_path, feature_name):
     """
-    Start a new feature branch from the main branch.
+    Create a new feature branch from the main branch.
     
     Args:
-        repo_path (str): The local path to the Git repository.
-        feature_branch_name (str): The name of the feature branch to create.
-        main_branch (str): The name of the main branch. Defaults to 'main'.
+    repo_path (str): Path to the local Git repository
+    feature_name (str): Name of the new feature branch
     
-    Raises:
-        GitCommandError: If an error occurs while running Git commands.
-        Exception: For any other errors that may occur.
+    Returns:
+    str: Name of the created feature branch
     """
     try:
         repo = Repo(repo_path)
-        origin = repo.remote(name='origin')
-
-        # Checkout the main branch and pull latest changes
-        repo.git.checkout(main_branch)
-        repo.git.pull('origin', main_branch)
         
-        # Check if the feature branch exists and create it if necessary
-        if feature_branch_name in repo.heads:
-            print(f"Feature branch '{feature_branch_name}' already exists. Checking it out.")
-            repo.git.checkout(feature_branch_name)
-        else:
-            print(f"Creating and checking out feature branch '{feature_branch_name}'...")
-            repo.git.checkout('-b', feature_branch_name)
-            origin.push('--set-upstream', origin.name, feature_branch_name)
+        # Ensure we're on the main branch and it's up to date
+        repo.git.checkout('main')
+        repo.git.pull('origin', 'main')
         
-        print(f"Switched to feature branch: '{feature_branch_name}'")
-        
-    except GitCommandError as gce:
-        print(f"Git command failed: {gce}")
+        # Create and switch to the new feature branch
+        new_branch = f"feature/{feature_name}"
+        repo.git.checkout('-b', new_branch)
+        print(f"Created and switched to new branch: {new_branch}")
+        return new_branch
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while creating the feature branch: {e}")
+        return None
 
-
-def commit_to_feature_branch(repo_path: str, commit_message: str) -> None:
+def commit_and_push(repo_path, commit_message, branch):
     """
-    Commit changes to the feature branch.
+    Commit changes and push to the specified branch.
     
     Args:
-        repo_path (str): The local path to the Git repository.
-        commit_message (str): The commit message to use.
+    repo_path (str): Path to the local Git repository
+    commit_message (str): Commit message
+    branch (str): Branch to push to
     
-    Raises:
-        GitCommandError: If an error occurs while running Git commands.
-        Exception: For any other errors that may occur.
+    Returns:
+    bool: True if successful, False otherwise
     """
     try:
         repo = Repo(repo_path)
-
         if repo.is_dirty(untracked_files=True):
             repo.git.add(A=True)
             repo.index.commit(commit_message)
-            print(f"Changes committed with message: '{commit_message}'")
+            origin = repo.remote(name='origin')
+            origin.push(branch)
+            print(f"Changes pushed to {branch} branch successfully!")
+            return True
         else:
             print("No changes to commit.")
-    
-    except GitCommandError as gce:
-        print(f"Git command failed: {gce}")
+            return False
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while committing and pushing: {e}")
+        return False
 
-
-def finish_feature_branch(repo_path: str, feature_branch_name: str, main_branch: str = 'main') -> None:
+def run_tests(repo_path):
     """
-    Merge the feature branch into the main branch and push changes to the remote.
+    Run tests for the project.
     
     Args:
-        repo_path (str): The local path to the Git repository.
-        feature_branch_name (str): The name of the feature branch to merge.
-        main_branch (str): The name of the main branch. Defaults to 'main'.
+    repo_path (str): Path to the local Git repository
     
-    Raises:
-        GitCommandError: If an error occurs while running Git commands.
-        Exception: For any other errors that may occur.
+    Returns:
+    bool: True if tests pass, False otherwise
+    """
+    try:
+        # This is a placeholder for running tests. Replace with your actual test command.
+        result = subprocess.run(['python', '-m', 'unittest', 'discover', repo_path], 
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            print("All tests passed successfully!")
+            return True
+        else:
+            print("Tests failed. Please fix the issues before merging.")
+            print(result.stdout)
+            print(result.stderr)
+            return False
+    except Exception as e:
+        print(f"An error occurred while running tests: {e}")
+        return False
+
+def merge_feature_branch(repo_path, feature_branch):
+    """
+    Merge the feature branch into the main branch after successful testing.
+    
+    Args:
+    repo_path (str): Path to the local Git repository
+    feature_branch (str): Name of the feature branch to merge
+    
+    Returns:
+    bool: True if merge was successful, False otherwise
     """
     try:
         repo = Repo(repo_path)
+        
+        # Switch to main branch and update it
+        repo.git.checkout('main')
+        repo.git.pull('origin', 'main')
+        
+        # Merge the feature branch
+        repo.git.merge(feature_branch)
+        
+        # Push the merged changes to remote main branch
         origin = repo.remote(name='origin')
-
-        # Checkout the main branch and pull latest changes
-        repo.git.checkout(main_branch)
-        repo.git.pull('origin', main_branch)
-
-        # Merge the feature branch into the main branch
-        print(f"Merging feature branch '{feature_branch_name}' into '{main_branch}'...")
-        repo.git.merge(feature_branch_name)
-
-        # Push the changes to the remote main branch
-        origin.push(main_branch)
-        print(f"Main branch '{main_branch}' updated and pushed to remote.")
-
-        # Optionally delete the local feature branch after merging
-        repo.git.branch('-d', feature_branch_name)
-        print(f"Feature branch '{feature_branch_name}' deleted locally.")
-    
-    except GitCommandError as gce:
-        print(f"Git command failed: {gce}")
+        origin.push('main')
+        
+        print(f"Feature branch {feature_branch} merged into main successfully!")
+        return True
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while merging the feature branch: {e}")
+        return False
 
+def task_branching_workflow(repo_path, feature_name, commit_message):
+    """
+    Execute the full task branching workflow: create branch, commit changes,
+    run tests, and merge if tests pass.
+    
+    Args:
+    repo_path (str): Path to the local Git repository
+    feature_name (str): Name of the new feature
+    commit_message (str): Commit message for the changes
+    
+    Returns:
+    bool: True if the entire workflow completed successfully, False otherwise
+    """
+    # Create feature branch
+    feature_branch = create_feature_branch(repo_path, feature_name)
+    if not feature_branch:
+        return False
+    
+    # Commit and push changes
+    if not commit_and_push(repo_path, commit_message, feature_branch):
+        return False
+    
+    # Run tests
+    if not run_tests(repo_path):
+        print("Tests failed. Feature branch not merged.")
+        return False
+    
+    # Merge feature branch
+    if merge_feature_branch(repo_path, feature_branch):
+        print(f"Feature '{feature_name}' has been successfully developed, tested, and merged!")
+        return True
+    else:
+        print(f"Failed to merge feature '{feature_name}'. Please resolve conflicts manually.")
+        return False
 
-# Example usage:
-repo_path = 'D:/i-Open_backend'
-feature_branch_name = 'feature/awesome-feature'
-commit_message = 'Add new awesome feature'
-
-# Start a new feature branch
-start_feature_branch(repo_path, feature_branch_name)
-
-# Commit changes to the feature branch
-commit_to_feature_branch(repo_path, commit_message)
-
-# Assume testing is done at this point. Once testing is complete, merge the feature branch.
-finish_feature_branch(repo_path, feature_branch_name)
+# Example usage
+if __name__ == "__main__":
+    repo_path = 'D:/i-Open_backend'
+    feature_name = "new_awesome_feature_test"
+    commit_message = "Implemented new awesome feature"
+    
+    success = task_branching_workflow(repo_path, feature_name, commit_message)
+    if success:
+        print("Task branching workflow completed successfully!")
+    else:
+        print("Task branching workflow encountered issues. Please review and resolve manually.")
