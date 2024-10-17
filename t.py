@@ -107,7 +107,7 @@ def finish_feature_branch(repo_path: str, feature_branch_name: str, main_branch:
 
 # Example usage:
 repo_path = 'D:/i-Open_backend'
-feature_branch_name = 'feature/new-awesome-feature'
+feature_branch_name = 'feature/awesome-feature'
 commit_message = 'Add new awesome feature'
 
 # Start a new feature branch
