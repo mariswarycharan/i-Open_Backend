@@ -49,7 +49,7 @@ def merge_feature_to_main(repo_path, feature_branch_name):
 
 # Example usage
 repo_path = 'D:/i-Open_backend'
-feature_branch_name = 'feature/new-awesome-feature'
+feature_branch_name = 'feature/new-awesome'
 commit_message = 'Add new awesome feature'
 
 start_feature_branch(repo_path, feature_branch_name)
