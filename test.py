@@ -1,30 +1,53 @@
 import subprocess
 import sys
 
-def deploy_to_environment(environment):
-    # Define the deployment steps for each environment
-    deployment_steps = {
-        'staging': ['git pull origin staging', 'pip install -r requirements.txt', 'restart staging server'],
-        'production': ['git pull origin master', 'pip install -r requirements.txt', 'restart production server']
-    }
+def update_code():
+    """
+    Pulls the latest code from the main repository branch.
+    
+    Raises:
+        subprocess.CalledProcessError: If the command fails.
+    """
+    update_command = ["git", "pull", "origin", "main"]
+    try:
+        print("Updating code repository...")
+        subprocess.run(update_command, check=True)
+        print("Code repository updated successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to update code repository. Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    # Execute each deployment step
-    for step in deployment_steps[environment]:
-        try:
-            # Running the deployment command
-            subprocess.run(step, check=True, shell=True)
-            print(f"Successfully completed step: {step}")
-        except subprocess.CalledProcessError as e:
-            # Log the error and exit if a step fails
-            print(f"Failed to complete step: {step}", file=sys.stderr)
-            print(e, file=sys.stderr)
-            sys.exit(1)
-    print(f"Deployment to {environment} completed successfully.")
+def deploy_to_environment(env):
+    """
+    Deploys the code to the specified environment.
+    
+    Args:
+        env (str): The target environment (e.g., development, staging, production).
+    
+    Raises:
+        subprocess.CalledProcessError: If the deployment command fails.
+    """
+    deploy_command = ["deploy-script", "--env", env]  # Placeholder for the actual deployment command
+    try:
+        print(f"Deploying to {env} environment...")
+        subprocess.run(deploy_command, check=True)
+        print(f"Deployment to {env} environment completed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to deploy to {env}. Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
-# The environments we want to deploy to
-environments = ['staging', 'production']
+def main():
+    """
+    Main function to update code and deploy to multiple environments.
+    """
+    environments = ['development', 'staging', 'production']  # Predefined environments for deployment
+    
+    # Update code repository
+    update_code()
 
-# Run the deployment
-for env in environments:
-    print(f"Starting deployment to {env}...")
-    deploy_to_environment(env)
+    # Deploy to each environment sequentially
+    for env in environments:
+        deploy_to_environment(env)
+
+if __name__ == "__main__":
+    main()
