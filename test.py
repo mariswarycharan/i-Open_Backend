@@ -1,13 +1,31 @@
 import subprocess
 import sys
+import os
+
+def is_git_repository():
+    """
+    Checks if the current directory is a Git repository by running 'git rev-parse'.
+    
+    Returns:
+        bool: True if the current directory is a Git repository, False otherwise.
+    """
+    try:
+        subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 def update_code():
     """
-    Pulls the latest code from the main repository branch.
+    Pulls the latest code from the main repository branch, if the current directory is a Git repository.
     
     Raises:
         subprocess.CalledProcessError: If the command fails.
     """
+    if not is_git_repository():
+        print("This directory is not a Git repository. Please ensure you are in the correct directory.")
+        sys.exit(1)
+    
     update_command = ["git", "pull", "origin", "main"]
     try:
         print("Updating code repository...")
