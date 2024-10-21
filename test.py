@@ -1,32 +1,30 @@
 import subprocess
 import sys
 
-# Define deployment environments
-environments = ['development', 'staging', 'production']
+def deploy_to_environment(environment):
+    # Define the deployment steps for each environment
+    deployment_steps = {
+        'staging': ['git pull origin staging', 'pip install -r requirements.txt', 'restart staging server'],
+        'production': ['git pull origin master', 'pip install -r requirements.txt', 'restart production server']
+    }
 
-def deploy_to_environment(env):
-    """Deploys the latest code to the specified environment."""
-    # Replace this command with your actual deployment commands
-    deploy_command = f"deploy-script --env {env}"
-    try:
-        print(f"Deploying to {env}...")
-        subprocess.run(deploy_command.split(), check=True)
-        print(f"Successfully deployed to {env}!")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to deploy to {env}. Error: {e}")
-        sys.exit(1)
+    # Execute each deployment step
+    for step in deployment_steps[environment]:
+        try:
+            # Running the deployment command
+            subprocess.run(step, check=True, shell=True)
+            print(f"Successfully completed step: {step}")
+        except subprocess.CalledProcessError as e:
+            # Log the error and exit if a step fails
+            print(f"Failed to complete step: {step}", file=sys.stderr)
+            print(e, file=sys.stderr)
+            sys.exit(1)
+    print(f"Deployment to {environment} completed successfully.")
 
-if __name__ == "__main__":
-    # Update code repository (e.g., git pull)
-    # Replace with actual update command
-    update_command = "git pull origin main"
-    try:
-        print("Updating code repository...")
-        subprocess.run(update_command.split(), check=True)
-    except subprocess.CalledProcessError as e:
-        print("Failed to update code repository. Error: {e}")
-        sys.exit(1)
-    
-    # Deploy to each environment
-    for env in environments:
-        deploy_to_environment(env)
+# The environments we want to deploy to
+environments = ['staging', 'production']
+
+# Run the deployment
+for env in environments:
+    print(f"Starting deployment to {env}...")
+    deploy_to_environment(env)
